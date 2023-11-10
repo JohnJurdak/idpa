@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Interface</title>
+    <!-- Link to the stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="welcome-message">
+        <h1>Welcome to ElJo Engine</h1>
+        <p class="slogan">Revolutionizing Search with Speed and Precision</p>
+    </div>
+    
+    <div class="container">
+        <h1>Search</h1>
+        <form id="searchForm">
+            <input type="text" name="word" placeholder="Enter a word" required>
+            <input type="submit" value="Search">
+        </form>
+
+        <h1>KNN Search</h1>
+        <form id="knnForm">
+            <input type="text" name="vector" placeholder="Enter a vector" required>
+            <input type="submit" value="Search">
+        </form>
+
+        <h1>Upload and Compare</h1>
+        <form id="uploadForm" enctype="multipart/form-data">
+            <input type="file" name="file" required>
+            <input type="submit" value="Upload">
+        </form>
+
+        <div id="results"></div>
+    </div>
+
+    <!-- Link to the JavaScript file -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

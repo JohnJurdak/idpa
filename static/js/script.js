@@ -117,3 +117,4 @@ function displayResults(data) {
         resultsDiv.appendChild(resultDiv);
     });
 }
+

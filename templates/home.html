@@ -32,6 +32,73 @@
             <input type="file" name="file" required>
             <input type="submit" value="Upload">
         </form>
+        <!-- ... [existing HTML content] ... -->
+
+        <h1>Custom Search</h1>
+        <form id="customSearchForm">
+            <input type="text" name="input_str" placeholder="Enter your query" required>
+            <input type="submit" value="Custom Search">
+        </form>
+<!-- Add this inside your HTML body where you want the search input to appear -->
+        <h1>Fuzzy Search</h1>
+        <input type="text" id="searchInput" placeholder="Type to search...">
+        <div id="searchResults"></div>
+
+        <script>
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const query = e.target.value;
+            if (query.length > 2) {
+                fetch(`/search_books?query=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        let resultsHtml = data.map(hit => 
+                            `<div>${hit.title}</div>`  // Adjust according to your data structure
+                        ).join('');
+                        document.getElementById('searchResults').innerHTML = resultsHtml;
+                    })
+                    .catch(err => console.error(err));
+            } else {
+                document.getElementById('searchResults').innerHTML = ''; // Clear results if query is too short
+            }
+        });
+        </script>
+
+        <h1>Elasticsearch Search</h1>
+        <form id="esSearchForm">
+            <input type="text" name="index_name" placeholder="Enter index name" required>
+            <input type="text" name="query" placeholder="Enter your query" required>
+    
+            <select name="searchType" id="searchType">
+                <option value="tf_search">TF Search</option>
+                <option value="idf_search">IDF Search</option>
+                <option value="bm25_search">BM25 Search</option>
+            </select>
+    
+            <input type="submit" value="Search">
+        </form>
+    
+        <div id="results"></div>
+    
+        <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+        <script>
+            // Function to handle form submission
+            async function handleESSubmit(event) {
+                event.preventDefault();
+                const formData = new FormData(document.getElementById('esSearchForm'));
+                const searchType = formData.get('searchType');
+                const route = '/' + searchType;
+                const response = await fetch(route, {
+                    method: 'POST',
+                    body: formData
+                });
+                const resultData = await response.json();
+                document.getElementById('results').innerText = JSON.stringify(resultData, null, 2);
+            }
+    
+            // Attach event listener to the Elasticsearch search form
+            document.getElementById('esSearchForm').addEventListener('submit', handleESSubmit);
+        </script>
+<!-- ... [existing JavaScript and HTML content] ... -->
 
         <div id="results"></div>
     </div>

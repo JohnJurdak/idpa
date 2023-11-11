@@ -1,7 +1,9 @@
 from flask import Flask, request, render_template, jsonify, flash, redirect, url_for
 from werkzeug.utils import secure_filename
 import os
-from searching import search, knn_search, upload_and_compare  # Import your functions here
+# Import Elasticsearch functions
+from idf import tf_search, idf_search, bm25_search
+from searching import search, knn_search, upload_and_compare, build_and_execute_query, search_as_you_type
 
 app = Flask(__name__)
 
@@ -59,6 +61,40 @@ def do_upload_and_compare():
 
     flash('File not allowed')
     return redirect(request.url)
+
+# Elasticsearch routes
+@app.route('/tf_search', methods=['POST'])
+def do_tf_search():
+    index_name = request.form['index_name']
+    query = request.form['query']
+    results = tf_search(index_name, query)
+    return jsonify(results)
+
+@app.route('/idf_search', methods=['POST'])
+def do_idf_search():
+    index_name = request.form['index_name']
+    query = request.form['query']
+    results = idf_search(index_name, query)
+    return jsonify(results)
+
+@app.route('/bm25_search', methods=['POST'])
+def do_bm25_search():
+    index_name = request.form['index_name']
+    query = request.form['query']
+    results = bm25_search(index_name, query)
+    return jsonify(results)
+
+@app.route('/custom_search', methods=['POST'])
+def do_custom_search():
+    input_str = request.form['input_str']
+    results = build_and_execute_query(input_str)
+    return jsonify(results)
+
+@app.route('/search_books', methods=['GET'])
+def search_books():
+    query = request.args.get('query', '')
+    results = search_as_you_type(query)
+    return jsonify(results)
 
 if __name__ == '__main__':
     app.run(debug=True)

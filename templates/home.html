@@ -80,7 +80,9 @@
             </form>
 
             <script>
-                document.getElementById('searchInput').addEventListener('input', function(e) {
+                fuzzy = document.getElementById('searchInput')
+                resultsDiv = document.getElementById('searchResults')
+                fuzzy.addEventListener('input', function(e) {
                     const query = e.target.value;
                     if (query.length > 2) {
                         fetch(`/search_books?query=${encodeURIComponent(query)}`)
@@ -90,12 +92,15 @@
                                     `<div>${hit.title}</div>`  // Adjust according to your data structure
                                 ).join('');
                                 document.getElementById('searchResults').innerHTML = resultsHtml;
+                                resultsDiv.style.display = 'block';
                             })
                             .catch(err => console.error(err));
                     } else {
                         document.getElementById('searchResults').innerHTML = ''; // Clear results if query is too short
+                        resultsDiv.style.display = 'none';
                     }
                 });
+
                 </script>
         </div>
 

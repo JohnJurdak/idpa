@@ -7,12 +7,13 @@ ELASTIC_PASSWORD = os.getenv('ELASTIC_PASSWORD')
 
 from elasticsearch import Elasticsearch, helpers
 
-ELASTIC_PASSWORD = "RRq_=87eqdMQlrbigSY-"
 
-# Create the client instance
+ELASTIC_PASSWORD = "Lx*=HqwOFH_Yi5sx3Q=V"
+
+
 es = Elasticsearch(
     "https://localhost:9200",
-    ca_certs="/Users/johnjurdak/Downloads/elasticsearch-8.10.4/config/certs/http_ca.crt",
+    ca_certs="/Users/elie/Downloads/elasticsearch-8.10.4/config/certs/http_ca.crt",
     basic_auth=("elastic", ELASTIC_PASSWORD)
 )
 

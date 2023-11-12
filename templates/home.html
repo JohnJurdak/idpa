@@ -9,74 +9,82 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
+
     <div class="welcome-message">
         <h1>Welcome to ElJo Engine</h1>
         <p class="slogan">Revolutionizing Search with Speed and Precision</p>
+        <div class="header">
+            <ul>
+                <li><a href="#search">Search</a></li>
+                <li><a href="#knn">KNN Search</a></li>
+                <li><a href="#upload">Upload and Compare</a></li>
+                <li><a href="#custom">Custom Search</a></li>
+                <li><a href="#fuzzy">Fuzzy Search</a></li>
+                <li><a href="#elastic">Elasticsearch Search</a></li>
+            </ul>
+        </div>
     </div>
     
     <div class="container">
-        <h1>Search</h1>
-        <form id="searchForm">
-            <input type="text" name="word" placeholder="Enter a word" required>
-            <input type="submit" value="Search">
-        </form>
+        <div id="search" class="algorithm">
+            <h1>Search</h1>
+            <form id="searchForm" class="form">
+                <input type="text" name="word" placeholder="Enter a word" required>
+                <input type="submit" value="Search">
+            </form>
+        </div>
 
-        <h1>KNN Search</h1>
-        <form id="knnForm">
-            <input type="text" name="vector" placeholder="Enter a vector" required>
-            <input type="submit" value="Search">
-        </form>
+        <div id="knn" class="algorithm">
 
-        <h1>Upload and Compare</h1>
-        <form id="uploadForm" enctype="multipart/form-data">
-            <input type="file" name="file" required>
-            <input type="submit" value="Upload">
-        </form>
-        <!-- ... [existing HTML content] ... -->
+            <h1>KNN Search</h1>
+            <form id="knnForm" class="form">
+                <input type="text" name="vector" placeholder="Enter a vector" required>
+                <input type="submit" value="Search">
+            </form>
+        </div>  
 
-        <h1>Custom Search</h1>
-        <form id="customSearchForm">
-            <input type="text" name="input_str" placeholder="Enter your query" required>
-            <input type="submit" value="Custom Search">
-        </form>
-<!-- Add this inside your HTML body where you want the search input to appear -->
-        <h1>Fuzzy Search</h1>
-        <input type="text" id="searchInput" placeholder="Type to search...">
-        <div id="searchResults"></div>
+        <div id="upload" class="algorithm">
 
-        <script>
-        document.getElementById('searchInput').addEventListener('input', function(e) {
-            const query = e.target.value;
-            if (query.length > 2) {
-                fetch(`/search_books?query=${encodeURIComponent(query)}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        let resultsHtml = data.map(hit => 
-                            `<div>${hit.title}</div>`  // Adjust according to your data structure
-                        ).join('');
-                        document.getElementById('searchResults').innerHTML = resultsHtml;
-                    })
-                    .catch(err => console.error(err));
-            } else {
-                document.getElementById('searchResults').innerHTML = ''; // Clear results if query is too short
-            }
-        });
-        </script>
+            <h1>Upload and Compare</h1>
+            <form id="uploadForm" class="form" enctype="multipart/form-data">
+                <input type="file" name="file" required>
+                <input type="submit" value="Upload">
+            </form>
+        </div>
 
-        <h1>Elasticsearch Search</h1>
-        <form id="esSearchForm">
-            <input type="text" name="index_name" placeholder="Enter index name" required>
-            <input type="text" name="query" placeholder="Enter your query" required>
-    
-            <select name="searchType" id="searchType">
-                <option value="tf_search">TF Search</option>
-                <option value="idf_search">IDF Search</option>
-                <option value="bm25_search">BM25 Search</option>
-            </select>
-    
-            <input type="submit" value="Search">
-        </form>
-    
+        <div id="custom" class="algorithm">
+            <h1>Custom Search</h1>
+            <form id="customSearchForm" class="form">
+                <input type="text" name="input_str" placeholder="Enter your query" required>
+                <input type="submit" value="Custom Search">
+            </form>
+        </div>
+
+        <div id="fuzzy" class="algorithm">
+
+            <h1>Fuzzy Search</h1>
+            <form id="fuzzySearchForm" class="form">
+                <input type="text" id="searchInput" placeholder="Type to search...">
+                <div id="searchResults"></div>
+            </form>
+        </div>
+
+        <div id="elastic" class="algorithm">
+
+            <h1>Elasticsearch Search</h1>
+            <form id="esSearchForm" class="form">
+                <input type="text" name="index_name" placeholder="Enter index name" required>
+                <input type="text" name="query" id="word" placeholder="Enter your query" required>
+        
+                <select name="searchType" id="searchType">
+                    <option value="tf_search">TF Search</option>
+                    <option value="idf_search">IDF Search</option>
+                    <option value="bm25_search">BM25 Search</option>
+                </select>
+        
+                <input type="submit" value="Search">
+            </form>
+        </div>
         <div id="results"></div>
     
         <script src="{{ url_for('static', filename='js/script.js') }}"></script>
@@ -97,8 +105,11 @@
     
             // Attach event listener to the Elasticsearch search form
             document.getElementById('esSearchForm').addEventListener('submit', handleESSubmit);
+
+            // Get all list items
+          
         </script>
-<!-- ... [existing JavaScript and HTML content] ... -->
+        <!-- ... [existing JavaScript and HTML content] ... -->
 
         <div id="results"></div>
     </div>

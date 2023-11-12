@@ -3,14 +3,13 @@ import json
 
 ELASTIC_PASSWORD = "Lx*=HqwOFH_Yi5sx3Q=V"
 
-ELASTIC_PASSWORD = "RRq_=87eqdMQlrbigSY-"
-
 # Create the client instance
 es = Elasticsearch(
     "https://localhost:9200",
-    ca_certs="/Users/johnjurdak/Downloads/elasticsearch-8.10.4/config/certs/http_ca.crt",
+    ca_certs="/Users/elie/Downloads/elasticsearch-8.10.4/config/certs/http_ca.crt",
     basic_auth=("elastic", ELASTIC_PASSWORD)
 )
+
 
 def create_index(es, index_name, settings):
     try:
@@ -22,29 +21,13 @@ def create_index(es, index_name, settings):
         else:
             raise e
 
+
 def index_data(es, index_name, data):
     for i, item in enumerate(data):
         es.index(index=index_name, id=i, body=item)
 
-def tf_search(es, index_name, query):
-    res = es.search(index=index_name, body=query)
-    return res
-
-def idf_search(es, index_name, query):
-    res = es.search(index=index_name, body=query, profile=True)
-    return res
-
-def bm25_search(es, index_name, query):
-    res = es.search(index=index_name, body=query, profile=True)
-    return res
-
-# Load your JSON data
-with open('Books.json', 'r') as f:
-    books = json.load(f)
-
-# Create Elasticsearch 
-# Define the settings for the index, specifying the use of the BM25 algorithm
-settings = {
+def tf_search(index_name, word ):
+    settings = {
     "settings": {
         "index": {
             "similarity": {
@@ -66,37 +49,108 @@ settings = {
         }
     }
 }
+    
 
-# Create indices
-# create_index(es, 'books', settings)
-# create_index(es, 'books_idf', settings)
-# create_index(es, 'books_bm25', settings)
+    query = {
+        "query": {
+            "match": {
+                "title": word
+            }
+        }   
+    }
+    create_index(es, index_name=index_name, settings=settings)
+    res = es.search(index=index_name, body=query)
+    return res
 
-# # Index the data
-# index_data(es, 'books', books)
+def idf_search(index_name, word):
+    settings_idf = {
+        "settings": {
+            "index": {
+                "similarity": {
+                    "my_similarity": {
+                        "type": "scripted",
+                        "script": {
+                            "source": "double idf = Math.log((docCount - doc.freq + 0.5) / (doc.freq + 0.5)); return query.boost * idf;"
+                        }
+                    }
+                }
+            }
+        },
+        "mappings": {
+            "properties": {
+                "my_field": {
+                    "type": "text",
+                    "similarity": "my_similarity"
+                }
+            }
+        }
+    }
+
+    query = {
+        "query": {
+            "match": {
+                "title": word
+            }
+        }   
+    }
+    create_index(es, index_name, settings_idf)
+    res = es.search(index=index_name, body=query, profile=True)
+    return res
+
+def bm25_search(index_name, word):
+    settings_bm25 = {
+        "settings": {
+            "index": {
+                "similarity": {
+                    "default": {
+                        "type": "BM25"
+                    }
+                }
+            }
+        }
+    }
+
+    query = {
+    "query": {
+        "match": {
+            "title": word
+        }
+    }
+}
+    create_index(es, index_name=index_name, settings=settings_bm25)
+    res = es.search(index=index_name, body=query, profile=True)
+    return res
+
+# Load your JSON data
+with open('Books.json', 'r') as f:
+    books = json.load(f)
+
+
+# Index the data
+index_data(es, 'books', books)
 
 # Define a query
 
 
 # Perform searches
-# res_tf = tf_search(es, 'books', query)
-# res_idf = idf_search(es, 'books_idf', query)
-# res_bm25 = bm25_search(es, 'books_bm25', query)
+res_tf = tf_search('books_tf', 'fiction')
+res_idf = idf_search('books_idf', 'fiction')
+res_bm25 = bm25_search('books_bm25', 'fiction')
 
 # # Get the runtime of each algorithm
-# runtime_tf = res_tf['took']
-# runtime_idf = res_idf['took']
-# runtime_bm25 = res_bm25['took']
+runtime_tf = res_tf['took']
+runtime_idf = res_idf['took']
+runtime_bm25 = res_bm25['took']
 
 # # Print the runtime of each algorithm
-# print(f"Runtime with TF settings: {runtime_tf} ms")
-# print(f"Runtime with IDF settings: {runtime_idf} ms")
-# print(f"Runtime with BM25 settings: {runtime_bm25} ms")
+print(f"Runtime with TF settings: {runtime_tf} ms")
+print(f"Runtime with IDF settings: {runtime_idf} ms")
+print(f"Runtime with BM25 settings: {runtime_bm25} ms")
 
 # Print the results
-# for hit in res_tf['hits']['hits']:
-#     print(f"Found book {hit['_source']['title']} with score {hit['_score']} (TF)")
-# for hit in res_idf['hits']['hits']:
-#     print(f"Found book {hit['_source']['title']} with score {hit['_score']} (IDF)")
-# for hit in res_bm25['hits']['hits']:
-#     print(f"Found book {hit['_source']['title']} with score {hit['_score']} (BM25)")
+for hit in res_tf['hits']['hits']:
+    print(f"Found book {hit['_source']['title']} with score {hit['_score']} (TF)")
+for hit in res_idf['hits']['hits']:
+    print(f"Found book {hit['_source']['title']} with score {hit['_score']} (IDF)")
+for hit in res_bm25['hits']['hits']:
+    print(f"Found book {hit['_source']['title']} with score {hit['_score']} (BM25)")

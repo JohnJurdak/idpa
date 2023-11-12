@@ -6,10 +6,9 @@ body {
 }
 
 .container {
-    max-width: 600px;
+    max-width: 100%;
     margin: 30px auto;
     padding: 20px;
-    background-color: #fff;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
@@ -20,6 +19,17 @@ h1 {
 
 form {
     margin-bottom: 20px;
+}
+
+.algorithm {
+    background-color: #ffff;
+    margin-top: 50px;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    flex-direction: column;
+    padding: 30px;
 }
 
 input[type="text"],
@@ -100,6 +110,40 @@ input[type="submit"]:hover {
     border: 1px solid #888;
     width: 80%;
     border-radius: 5px;
+}
+
+.header {
+    background-color: #4CAF50; /* Set to green or your preferred color */
+    padding: 10px; /* Add some padding for better visual appeal */
+    display: flex;
+    justify-content: center;
+}
+
+.header a {
+    text-decoration: none;
+    color: #333; /* Set your desired text color */
+    font-weight: bold;
+    font-size: 16px; /* Set your desired font size */
+    transition: color 0.3s; /* Add transition effect for hover */
+    cursor: pointer;
+}
+
+ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex; /* Make the list items horizontal */
+}
+
+li {
+    margin-right: 20px; /* Add space between list items */
+    color: #000; /* Set text color to black */
+    cursor: pointer;
+    transition: color 0.3s; /* Add transition effect for hover */
+}
+
+li:hover {
+    color: #ffcc00; /* Change text color on hover to a different color */
 }
 
 .close {

@@ -4,14 +4,15 @@ import os
 from elasticsearch import Elasticsearch, helpers
 import time
 
-ELASTIC_PASSWORD = "RRq_=87eqdMQlrbigSY-"
+ELASTIC_PASSWORD = "Lx*=HqwOFH_Yi5sx3Q=V"
 
 # Create the client instance
 es = Elasticsearch(
     "https://localhost:9200",
-    ca_certs="/Users/johnjurdak/Downloads/elasticsearch-8.10.4/config/certs/http_ca.crt",
+    ca_certs="/Users/elie/Downloads/elasticsearch-8.10.4/config/certs/http_ca.crt",
     basic_auth=("elastic", ELASTIC_PASSWORD)
 )
+
 
 
 

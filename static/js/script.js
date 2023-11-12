@@ -5,6 +5,23 @@ document.getElementById('searchForm').onsubmit = function(event) {
     fetchResults('/search', { word: word });
 };
 
+document.getElementById('esSearchForm').onsubmit = function(event) {
+    event.preventDefault();
+    let word = this.word.value;
+    fetchResults('/tf_search', { word: word });
+};
+document.getElementById('esSearchForm').onsubmit = function(event) {
+    event.preventDefault();
+    let word = this.word.value;
+    fetchResults('/idf_search', { word: word });
+};
+document.getElementById('esSearchForm').onsubmit = function(event) {
+    event.preventDefault();
+    let word = this.word.value;
+    fetchResults('/bm25_search', { word: word });
+};
+
+
 // Handle the KNN Form submission
 document.getElementById('knnForm').onsubmit = function(event) {
     event.preventDefault();

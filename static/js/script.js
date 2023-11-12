@@ -13,10 +13,12 @@ document.getElementById('esSearchForm').onsubmit = function(event) {
 };
 document.getElementById('esSearchForm').onsubmit = function(event) {
     event.preventDefault();
+    alert(word)
     let word = this.word.value;
     fetchResults('/idf_search', { word: word });
 };
 document.getElementById('esSearchForm').onsubmit = function(event) {
+    alert('i am here')
     event.preventDefault();
     let word = this.word.value;
     fetchResults('/bm25_search', { word: word });
@@ -31,17 +33,10 @@ document.getElementById('knnForm').onsubmit = function(event) {
     fetchResults('/knn_search', { vector: vector }, tag);
 };
 
-// Handle the Upload Form submission
-document.getElementById('uploadForm').onsubmit = function(event) {
-    event.preventDefault();
-    let formData = new FormData(this);
-    let tag = 'upload-results'
-
-    fetchResults('/upload_and_compare', formData, tag);
-};
 
 // General function to fetch and display results
 function fetchResults(url, body, tag) {
+    alert(tag)
     // Determine if we are sending FormData (for file uploads) or a simple object
     const options = {
         method: 'POST',
@@ -77,7 +72,6 @@ function truncateTitle(title) {
 }
 
 function displayResults(data, tag) {
-    alert(tag)
     let resultsDiv = document.getElementById(tag);
     resultsDiv.innerHTML = '<h2>Results</h2>';
     data.forEach(result => {

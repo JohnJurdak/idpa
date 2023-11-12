@@ -2,8 +2,8 @@ from flask import Flask, request, render_template, jsonify, flash, redirect, url
 from werkzeug.utils import secure_filename
 import os
 # Import Elasticsearch functions
-from idf import tf_search, idf_search, bm25_search
-from searching import search, knn_search, upload_and_compare, build_and_execute_query, search_as_you_type
+from idf import tf_search, idf_search, bm25_search, get_prev
+from searching import search, knn_search, upload_and_compare, build_and_execute_query, search_as_you_type, search_specific
 
 app = Flask(__name__)
 
@@ -57,6 +57,7 @@ def do_upload_and_compare():
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(file_path)
         results = upload_and_compare(file_path)
+        print('results', results)
         return jsonify(results)  # Adjust the upload_and_compare function to return results
 
     flash('File not allowed')
@@ -64,25 +65,32 @@ def do_upload_and_compare():
 
 # Elasticsearch routes
 @app.route('/tf_search', methods=['POST'])
-def do_tf_search():
-    index_name = request.form['index_name']
-    query = request.form['query']
-    results = tf_search(index_name, query)
-    return jsonify(results)
+def tf_search_api():
+    data = request.json
+    index_name = data.get("index_name")
+    if not index_name:
+        return jsonify({"status": "error", "message": "Index name is required"}), 400
+    result = tf_search(index_name)
+    return jsonify(result)
 
 @app.route('/idf_search', methods=['POST'])
-def do_idf_search():
-    index_name = request.form['index_name']
-    query = request.form['query']
-    results = idf_search(index_name, query)
-    return jsonify(results)
+def idf_search_api():
+    data = request.json
+    index_name = data.get("index_name")
+    if not index_name:
+        return jsonify({"status": "error", "message": "Index name is required"}), 400
+    result = idf_search(index_name)
+    return jsonify(result)
 
 @app.route('/bm25_search', methods=['POST'])
-def do_bm25_search():
-    index_name = request.form['index_name']
-    query = request.form['query']
-    results = bm25_search(index_name, query)
-    return jsonify(results)
+def bm25_api():
+    data = request.json
+    index_name = data.get("index_name")
+    if not index_name:
+        return jsonify({"status": "error", "message": "Index name is required"}), 400
+    result = bm25_search(index_name)
+    return jsonify(result)
+
 
 @app.route('/custom_search', methods=['POST'])
 def do_custom_search():
@@ -95,6 +103,26 @@ def search_books():
     query = request.args.get('query', '')
     results = search_as_you_type(query)
     return jsonify(results)
+
+@app.route('/get_prev', methods=['GET'])
+def get_prev_api():
+    items = get_prev()
+    return jsonify(list(items))
+
+
+@app.route('/search_specific', methods=['GET'])
+def search_specific_api():
+    word = request.args.get('word')
+    index_name = request.args.get('index')
+    if not word or not index_name:
+        return jsonify({"error": "Missing word or index name"}), 400
+
+    try:
+        hits = search_specific(word, index_name)
+        return jsonify(hits)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,7 +1,7 @@
-from elasticsearch import Elasticsearch, BadRequestError
+from elasticsearch import Elasticsearch, BadRequestError, helpers
 import json
-
-
+import os
+prev_index = set()
 
 ELASTIC_PASSWORD = "RRq_=87eqdMQlrbigSY-"
 
@@ -27,79 +27,103 @@ def index_data(es, index_name, data):
     for i, item in enumerate(data):
         es.index(index=index_name, id=i, body=item)
 
-def tf_search(index_name, word ):
+def tf_search(index_name):
+    print("we are in tf")
+      # Define settings and mappings for the index
+    prev_index.add(index_name)
     settings = {
-    "settings": {
+        "settings": {
         "index": {
             "similarity": {
                 "my_similarity": {
                     "type": "scripted",
                     "script": {
-                        "source": "double tf = Math.sqrt(doc.freq); return query.boost * tf;"
+                        "source": "double tf = doc.freq; return tf;"
                     }
                 }
             }
         }
     },
-    "mappings": {
-        "properties": {
-            "my_field": {
-                "type": "text",
-                "similarity": "my_similarity"
+        "mappings": {
+            "properties": {
+                "title": {"type": "text", "similarity":"my_similarity"},
+                # Add other fields as necessary
             }
         }
     }
-}
+    # Create the index
+    es.indices.create(index=index_name, body=settings)
+    es.indices.refresh(index=index_name)
+
+    with open("Books.json", 'r') as open_file:
+        json_data = json.load(open_file)
+        for i, k in enumerate(json_data):
+            data.append({
+                "_index": index_name,
+                "_id": i,
+                "_source": k
+            })
+    helpers.bulk(es, data)  
+    search_in_index("went", index_name)
     
 
-    query = {
-        "query": {
-            "match": {
-                "title": word
-            }
-        }   
-    }
-    create_index(es, index_name=index_name, settings=settings)
-    res = es.search(index=index_name, body=query)
-    return res
-
-def idf_search(index_name, word):
-    settings_idf = {
+def idf_search(index_name):
+    print("we are in idf")
+    prev_index.add(index_name)
+    settings = {
         "settings": {
-            "index": {
-                "similarity": {
-                    "my_similarity": {
-                        "type": "scripted",
-                        "script": {
-                            "source": "double idf = Math.log((docCount - doc.freq + 0.5) / (doc.freq + 0.5)); return query.boost * idf;"
-                        }
+        "index": {
+            "similarity": {
+                "my_similarity": {
+                    "type": "scripted",
+                    "script": {
+                            "source": "double idf = Math.log((field.docCount+0.5)/(term.docFreq+0.5)) + 0.5; return idf;"
                     }
                 }
             }
-        },
+        }
+    },
         "mappings": {
             "properties": {
-                "my_field": {
-                    "type": "text",
-                    "similarity": "my_similarity"
-                }
+                "title": {"type": "text"},
+                # Add other fields as necessary
             }
         }
     }
+    # Create the index
+    es.indices.create(index=index_name, body=settings, ignore=400)
 
+    with open("Books.json", 'r') as open_file:
+        json_data = json.load(open_file)
+        for i, k in enumerate(json_data):
+            data.append({
+                "_index": index_name,
+                "_id": i,
+                "_source": k
+            })
+    helpers.bulk(es, data)  
+    search_in_index("went", index_name)
+
+def search_in_index(word, index_name):
     query = {
         "query": {
             "match": {
                 "title": word
             }
-        }   
+        }
     }
-    create_index(es, index_name, settings_idf)
-    res = es.search(index=index_name, body=query, profile=True)
-    return res
+    response = es.search(index=index_name, body=query)
+    hits = response["hits"]["hits"]
+    print(hits)
+    for hit in hits:
+        print(hit)
+    return hits
 
-def bm25_search(index_name, word):
-    settings_bm25 = {
+
+def bm25_search(index_name):
+    print("we are in bm25")
+    prev_index.add(index_name)
+    settings = {
         "settings": {
             "index": {
                 "similarity": {
@@ -108,50 +132,60 @@ def bm25_search(index_name, word):
                     }
                 }
             }
-        }
+        },
+
     }
+    es.indices.create(index=index_name, body=settings)
+    es.indices.refresh(index=index_name)
+    
 
-    query = {
-    "query": {
-        "match": {
-            "title": word
-        }
-    }
-}
-    create_index(es, index_name=index_name, settings=settings_bm25)
-    res = es.search(index=index_name, body=query, profile=True)
-    return res
-
-# Load your JSON data
-with open('Books.json', 'r') as f:
-    books = json.load(f)
+    with open("Books.json", 'r') as open_file:
+        json_data = json.load(open_file)
+        for i, k in enumerate(json_data):
+            data.append({
+                "_index": index_name,
+                "_id": i,
+                "_source": k
+            })
+    helpers.bulk(es, data) 
 
 
-# Index the data
-index_data(es, 'books', books)
 
-# Define a query
+# # Load your JSON data
+# with open('Books.json', 'r') as f:
+#     books = json.load(f)
+#     print(books)
+data = []
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-# Perform searches
-res_tf = tf_search('books_tf', 'fiction')
-res_idf = idf_search('books_idf', 'fiction')
-res_bm25 = bm25_search('books_bm25', 'fiction')
+# JSONFILE_DIR = os.path.join(BASE_DIR)
+# for filename in os.listdir(JSONFILE_DIR):
+#     if filename.endswith('Books.json'):
+#         file_path = os.path.join(JSONFILE_DIR, filename)
+#         with open(file_path, 'r') as open_file:
+#             json_data = json.load(open_file)
+#             for i, k in enumerate(json_data):
+#                 print(k)
+#                 data.append({
+#                     "_index": "one_two_three",
+#                     "_id": i,
+#                     "_source": k
+#                 })
+# with open("Books.json", 'r') as open_file:
+#     json_data = json.load(open_file)
+#     for i, k in enumerate(json_data):
+#         data.append({
+#             "_index": "one_two_three",
+#             "_id": i,
+#             "_source": k
+#         })
+# helpers.bulk(es, data)
 
-# # Get the runtime of each algorithm
-runtime_tf = res_tf['took']
-runtime_idf = res_idf['took']
-runtime_bm25 = res_bm25['took']
+def get_prev():
+    return(prev_index)
 
-# # Print the runtime of each algorithm
-print(f"Runtime with TF settings: {runtime_tf} ms")
-print(f"Runtime with IDF settings: {runtime_idf} ms")
-print(f"Runtime with BM25 settings: {runtime_bm25} ms")
 
-# Print the results
-for hit in res_tf['hits']['hits']:
-    print(f"Found book {hit['_source']['title']} with score {hit['_score']} (TF)")
-for hit in res_idf['hits']['hits']:
-    print(f"Found book {hit['_source']['title']} with score {hit['_score']} (IDF)")
-for hit in res_bm25['hits']['hits']:
-    print(f"Found book {hit['_source']['title']} with score {hit['_score']} (BM25)")
+# tf_search("one_two_three")
+# idf_search("odrob")
+

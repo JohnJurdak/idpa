@@ -37,6 +37,37 @@
 
         </div>
 
+        <h1>Fuzzy Search</h1>
+        <form id="fuzzySearchForm" class="form">
+            <input type="text" id="searchInput" placeholder="Type to search...">
+            <div id="searchResults" class="results-container"></div>
+        </form>
+
+        <script>
+            fuzzy = document.getElementById('searchInput')
+            resultsDiv = document.getElementById('searchResults')
+            fuzzy.addEventListener('input', function(e) {
+                const query = e.target.value;
+                if (query.length > 2) {
+                    fetch(`/search_books?query=${encodeURIComponent(query)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            let resultsHtml = data.map(hit => 
+                                `<div>${hit.title}</div>`  // Adjust according to your data structure
+                            ).join('');
+                            document.getElementById('searchResults').innerHTML = resultsHtml;
+                            resultsDiv.style.display = 'block';
+                        })
+                        .catch(err => console.error(err));
+                } else {
+                    document.getElementById('searchResults').innerHTML = ''; // Clear results if query is too short
+                    resultsDiv.style.display = 'none';
+                }
+            });
+
+            </script>
+    </div>
+
         <div id="knn" class="algorithm">
 
             <h1>KNN Search</h1>
@@ -58,6 +89,35 @@
             </form>
 
             <div id="upload-results" class="results-container"></div>
+            <script>
+                document.getElementById('uploadForm').addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    const formData = new FormData(document.getElementById('uploadForm'));
+                    
+                    fetch('/upload_and_compare', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Response data:', data);  // Log the data here
+                        let resultsHtml = data.map(hit => 
+                            `<div>${hit[1].title}</div>`  // Adjust according to your data structure
+                        ).join('');
+                        document.getElementById('upload-results').innerHTML = resultsHtml;
+                        document.getElementById('upload-results').style.display = 'block';
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        document.getElementById('upload-results').innerHTML = `<div>Error: ${err.message}</div>`;
+                    });
+                });
+            </script>
 
         </div>
 
@@ -71,79 +131,107 @@
 
         </div>
 
-        <div id="fuzzy" class="algorithm">
-
-            <h1>Fuzzy Search</h1>
-            <form id="fuzzySearchForm" class="form">
-                <input type="text" id="searchInput" placeholder="Type to search...">
-                <div id="searchResults" class="results-container"></div>
-            </form>
-
-            <script>
-                fuzzy = document.getElementById('searchInput')
-                resultsDiv = document.getElementById('searchResults')
-                fuzzy.addEventListener('input', function(e) {
-                    const query = e.target.value;
-                    if (query.length > 2) {
-                        fetch(`/search_books?query=${encodeURIComponent(query)}`)
-                            .then(response => response.json())
-                            .then(data => {
-                                let resultsHtml = data.map(hit => 
-                                    `<div>${hit.title}</div>`  // Adjust according to your data structure
-                                ).join('');
-                                document.getElementById('searchResults').innerHTML = resultsHtml;
-                                resultsDiv.style.display = 'block';
-                            })
-                            .catch(err => console.error(err));
-                    } else {
-                        document.getElementById('searchResults').innerHTML = ''; // Clear results if query is too short
-                        resultsDiv.style.display = 'none';
-                    }
-                });
-
-                </script>
-        </div>
-
-        <div id="elastic" class="algorithm">
-
-            <h1>Elasticsearch Search</h1>
-            <form id="esSearchForm" class="form">
-                <input type="text" name="index_name" placeholder="Enter index name" required>
-                <input type="text" name="query" id="word" placeholder="Enter your query" required>
-        
-                <select name="searchType" id="searchType">
-                    <option value="tf_search">TF Search</option>
-                    <option value="idf_search">IDF Search</option>
-                    <option value="bm25_search">BM25 Search</option>
-                </select>
-        
+        <div id="searchSpecific" class="algorithm">
+            <h1>Search Specific Index</h1>
+            <form id="searchSpecificForm" class="form">
+                <input type="text" id="specificSearchWord" placeholder="Enter a word" required>
+                <input type="text" id="specificSearchIndex" placeholder="Enter index name" required>
                 <input type="submit" value="Search">
             </form>
+            <div id="specificSearchResults" class="results-container"></div>
         </div>
-        <div id="results"></div>
-    
-        <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+        <script>
+            document.getElementById('searchSpecificForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const word = document.getElementById('specificSearchWord').value;
+                const index = document.getElementById('specificSearchIndex').value;
+                const resultsDiv = document.getElementById('specificSearchResults')
+                if (!word || !index) {
+                    alert('Both word and index name are required.');
+                    return;
+                }
+
+                fetch(`/search_specific?word=${encodeURIComponent(word)}&index=${encodeURIComponent(index)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        let resultsHtml = data.map(hit => 
+                            `<div>Document ID: ${hit._id}, Title: ${hit._source.title}</div>` // Adjust according to your data structure
+                        ).join('');
+                        document.getElementById('specificSearchResults').innerHTML = resultsHtml;
+                        resultsDiv.style.display = 'block';
+
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        document.getElementById('specificSearchResults').innerHTML = `<div>Error: ${err.message}</div>`;
+                    });
+            });
+        </script>
+        
+
+        <div id="fuzzy" class="algorithm">
+        <div id="elastic" class="algorithm">
+                <h1>Elasticsearch Search</h1>
+                <form id="esSearchForm" class="form">
+                    <input type="text" name="index_name" placeholder="Enter index name" required>
+                    
+                    <select name="searchType" id="searchType">
+                        <option value="tf_search">TF Search</option>
+                        <option value="idf_search">IDF Search</option>
+                        <option value="bm25_search">BM25 Search</option>
+                    </select>
+                    
+                    <input type="submit" value="Create">
+                </form>
+                <div id="results" class="results-container"></div>
+        </div>
         <script>
             // Function to handle form submission
             async function handleESSubmit(event) {
                 event.preventDefault();
                 const formData = new FormData(document.getElementById('esSearchForm'));
+                const indexName = formData.get('index_name');
                 const searchType = formData.get('searchType');
-                const route = '/' + searchType;
-                const response = await fetch(route, {
+                const payload = { index_name: indexName };
+                const response = await fetch('/' + searchType, {
                     method: 'POST',
-                    body: formData
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
                 });
+                if (!response.ok) {
+                    console
+                    throw new Error(`HTTP error! Status: ${response.message}`);
+                }
                 const resultData = await response.json();
+        
                 document.getElementById('results').innerText = JSON.stringify(resultData, null, 2);
             }
-    
+        
             // Attach event listener to the Elasticsearch search form
             document.getElementById('esSearchForm').addEventListener('submit', handleESSubmit);
-
-            // Get all list items
-          
-        </script>
+        </script>        
+            
+            <div id="getPrev" class="algorithm">
+                <h1>Previous Indexes</h1>
+                <button id="getPrevButton">Get Previous Indexes</button>
+                <div id="prevResults" class="results-container"></div>
+            </div>
+            <script>
+                document.getElementById('getPrevButton').addEventListener('click', function() {
+                    fetch('/get_prev')
+                        .then(response => response.json())
+                        .then(data => {
+                            let resultsHtml = data.map(item => 
+                                `<div>${item}</div>` // Formatting each item
+                            ).join('');
+                            document.getElementById('prevResults').innerHTML = resultsHtml;
+                        })
+                        .catch(err => console.error(err));
+                });
+            </script>
+            
         <!-- ... [existing JavaScript and HTML content] ... -->
 
         <div id="results"></div>

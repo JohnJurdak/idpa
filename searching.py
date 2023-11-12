@@ -33,6 +33,28 @@ def search(word):
         print(f"Document ID: {hit['_id']}, Title: {hit['_source']['title']}")
     return hits
 
+
+def search_specific(word, index_name):
+    query = {
+        "query": {
+            "match": {
+                "title": word
+            }
+        }
+    }
+
+    print(word)
+    print(index_name)
+    response = es.search(index=index_name, body=query)  # Use the provided index name
+    hits = response["hits"]["hits"]
+    print(hits)
+
+    for hit in hits:
+        print(f"Document ID: {hit['_id']}, Title: {hit['_source']['title']}")
+
+    return hits
+
+
 def knn_search(vector):
     query = {
         "knn": {
@@ -74,7 +96,7 @@ def upload_and_compare(file_path):
 
     # Extract the hits and their IDs
     hits = [(hit["_id"], hit["_source"]) for hit in response["hits"]["hits"]]
-
+    print('hits', hits)
     return hits
 
 
@@ -100,10 +122,6 @@ def build_and_execute_query(input_str):
         }
     }
 
-    print("query",es_query)
-    print("------")
-    print()
-
     # Step 4: Execute the Elasticsearch Query
     response = es.search(index="books", body=es_query)
     hits = response["hits"]["hits"]
@@ -124,3 +142,4 @@ def search_as_you_type(query):
         }
     })
     return [hit["_source"] for hit in response['hits']['hits']]
+

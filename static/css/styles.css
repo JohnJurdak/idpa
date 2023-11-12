@@ -21,6 +21,12 @@ form {
     margin-bottom: 20px;
 }
 
+.results-container {
+    height: 300px; 
+    overflow-y: scroll;
+    display: none;
+}
+
 .algorithm {
     background-color: #ffff;
     margin-top: 50px;

@@ -2,7 +2,8 @@
 document.getElementById('searchForm').onsubmit = function(event) {
     event.preventDefault();
     let word = this.word.value;
-    fetchResults('/search', { word: word });
+    let tag = 'normal-search'
+    fetchResults('/search', { word: word }, tag);
 };
 
 document.getElementById('esSearchForm').onsubmit = function(event) {
@@ -26,18 +27,21 @@ document.getElementById('esSearchForm').onsubmit = function(event) {
 document.getElementById('knnForm').onsubmit = function(event) {
     event.preventDefault();
     let vector = this.vector.value;
-    fetchResults('/knn_search', { vector: vector });
+    let tag = 'knn-results'
+    fetchResults('/knn_search', { vector: vector }, tag);
 };
 
 // Handle the Upload Form submission
 document.getElementById('uploadForm').onsubmit = function(event) {
     event.preventDefault();
     let formData = new FormData(this);
-    fetchResults('/upload_and_compare', formData);
+    let tag = 'upload-results'
+
+    fetchResults('/upload_and_compare', formData, tag);
 };
 
 // General function to fetch and display results
-function fetchResults(url, body) {
+function fetchResults(url, body, tag) {
     // Determine if we are sending FormData (for file uploads) or a simple object
     const options = {
         method: 'POST',
@@ -51,7 +55,7 @@ function fetchResults(url, body) {
     fetch(url, options)
     .then(response => response.json())
     .then(data => {
-        displayResults(data);
+        displayResults(data, tag);
     })
     .catch(error => {
         console.error('Error:', error);
@@ -72,8 +76,9 @@ function truncateTitle(title) {
     }
 }
 
-function displayResults(data) {
-    let resultsDiv = document.getElementById('results');
+function displayResults(data, tag) {
+    alert(tag)
+    let resultsDiv = document.getElementById(tag);
     resultsDiv.innerHTML = '<h2>Results</h2>';
     data.forEach(result => {
         let truncatedTitle = truncateTitle(result._source.title);
@@ -132,6 +137,7 @@ function displayResults(data) {
         });
 
         resultsDiv.appendChild(resultDiv);
+        resultsDiv.style.display = 'block';
     });
 }
 

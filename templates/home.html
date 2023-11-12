@@ -76,8 +76,27 @@
             <h1>Fuzzy Search</h1>
             <form id="fuzzySearchForm" class="form">
                 <input type="text" id="searchInput" placeholder="Type to search...">
-                <div id="searchResults"></div>
+                <div id="searchResults" class="results-container"></div>
             </form>
+
+            <script>
+                document.getElementById('searchInput').addEventListener('input', function(e) {
+                    const query = e.target.value;
+                    if (query.length > 2) {
+                        fetch(`/search_books?query=${encodeURIComponent(query)}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                let resultsHtml = data.map(hit => 
+                                    `<div>${hit.title}</div>`  // Adjust according to your data structure
+                                ).join('');
+                                document.getElementById('searchResults').innerHTML = resultsHtml;
+                            })
+                            .catch(err => console.error(err));
+                    } else {
+                        document.getElementById('searchResults').innerHTML = ''; // Clear results if query is too short
+                    }
+                });
+                </script>
         </div>
 
         <div id="elastic" class="algorithm">

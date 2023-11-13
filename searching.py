@@ -1,5 +1,7 @@
 import json
 import os
+import xml.etree.ElementTree as ET
+
 
 ELASTIC_PASSWORD = os.getenv('ELASTIC_PASSWORD')
 
@@ -142,4 +144,42 @@ def search_as_you_type(query):
         }
     })
     return [hit["_source"] for hit in response['hits']['hits']]
+
+def parse_flwor_expression(element):
+    # This is a very basic and incomplete implementation
+    # You would need to handle 'for', 'let', 'where', 'order by', and 'return' clauses
+    es_query = {"query": {"bool": {"must": []}}}
+
+    for child in element:
+        if child.tag == 'where':
+            # Assuming a simple equality condition for demonstration
+            field, value = child.text.split('=')
+            field = field.strip()
+            value = value.strip().strip('"')
+            es_query['query']['bool']['must'].append({"match": {field: value}})
+
+    return es_query
+
+def xquery_to_es_query(xquery):
+
+    print("we in")
+    root = ET.fromstring(f"<query>{xquery}</query>")
+    es_query = {"query": {"match_all": {}}}
+    for element in root:
+        if element.tag == 'flwor':
+            es_query = parse_flwor_expression(element)
+        # Add more handlers for different XQuery elements
+    print(es_query)
+    response = es.search(index="books", body=es_query)
+    hits = response["hits"]["hits"]
+
+    for hit in hits:
+        print(f"Document ID: {hit['_id']}, Title: {hit['_source']['title']}")
+
+    return hits
+
+# xquery_to_es_query("<flwor><where>title = Hello World</where></flwor>")
+# Example usage
+
+
 

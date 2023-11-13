@@ -213,11 +213,7 @@
             document.getElementById('esSearchForm').addEventListener('submit', handleESSubmit);
         </script>        
             
-            <div id="getPrev" class="algorithm">
-                <h1>Previous Indexes</h1>
-                <button id="getPrevButton">Get Previous Indexes</button>
-                <div id="prevResults" class="results-container"></div>
-            </div>
+
             <script>
                 document.getElementById('getPrevButton').addEventListener('click', function() {
                     fetch('/get_prev')
@@ -231,10 +227,52 @@
                         .catch(err => console.error(err));
                 });
             </script>
+
+<h1>XQuery Search</h1>
+    <form id="xquerySearchForm">
+        <label for="xquery">Enter XQuery:</label><br>
+        <textarea id="xquery" name="xquery" rows="4" cols="50"></textarea><br>
+        <input type="submit" value="Search">
+    </form>
+    <pre id="results_query" class="results-container"></pre>
+
+    <script>
+        // Function to handle form submission
+        async function handleXQuerySubmit(event) {
+            event.preventDefault();
+            const xquery = document.getElementById('xquery').value;
+            const resultsDiv = document.getElementById('results_query')
+            const payload = { xquery: xquery };
+            try {
+                const response = await fetch('/xquery_search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const resultData = await response.json();
+                console.log(resultData)
+                let titles = resultData.map(hit => hit._source.title).join('<br>');
+                alert(titles)
+                document.getElementById('results_query').innerHTML = titles
+                resultsDiv.style.display = 'block';
+
+            } catch (error) {
+                document.getElementById('results_query').innerText = 'Error: ' + error.message;
+            }
+        }
+
+        // Attach event listener to the XQuery search form
+        document.getElementById('xquerySearchForm').addEventListener('submit', handleXQuerySubmit);
+    </script>     
             
         <!-- ... [existing JavaScript and HTML content] ... -->
 
-        <div id="results"></div>
+     
     </div>
 
     <!-- Link to the JavaScript file -->

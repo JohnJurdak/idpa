@@ -36,7 +36,7 @@ document.getElementById('knnForm').onsubmit = function(event) {
 
 // General function to fetch and display results
 function fetchResults(url, body, tag) {
-    alert(tag)
+    
     // Determine if we are sending FormData (for file uploads) or a simple object
     const options = {
         method: 'POST',

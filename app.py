@@ -3,7 +3,7 @@ from werkzeug.utils import secure_filename
 import os
 # Import Elasticsearch functions
 from idf import tf_search, idf_search, bm25_search, get_prev
-from searching import search, knn_search, upload_and_compare, build_and_execute_query, search_as_you_type, search_specific
+from searching import search, knn_search, upload_and_compare, build_and_execute_query, search_as_you_type, search_specific, xquery_to_es_query
 
 app = Flask(__name__)
 
@@ -123,6 +123,20 @@ def search_specific_api():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
+@app.route('/xquery_search', methods=['POST'])
+def xquery_search():
+    xquery = request.json.get('xquery')
+    if not xquery:
+        return jsonify({"error": "No XQuery provided"}), 400
+
+    try:
+        results = xquery_to_es_query(xquery)
+
+        print(">>>>", results)
+        return jsonify(results)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
